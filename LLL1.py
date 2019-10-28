@@ -1,0 +1,110 @@
+%reset
+import  numpy as np
+import numpy.linalg as LA
+import math
+''''def dotProduct(a,b):
+    n=len(a)
+    val=0
+    for()'''
+def scale(a,k):
+    m=[x*k for x in  a]
+    #print("m",m)
+    return m
+def sub(a,b):
+    n=len(a)
+    #print("sub a",a,b)
+    c=list(a)
+    for i in range(n):
+        c[i]=c[i]-b[i]
+    #print("c",c)
+    return c
+def GramShmid(B):
+    ''''coef=[0 for i in range(len(B))]
+    basis=B
+    n=len(B)
+    print(n)
+    for i in range(n):
+        te=[0]*n
+        #print("te",te)
+        te[i]=1
+        bi=list(B[i])
+        #print("i",i)
+        #print(bi)'''
+    coeff = []
+    basis = []
+    #print("gbasis",basis,B)
+    n = len(B)
+    for i in range(n):
+        mu = [0] * n
+        mu[i] = 1
+        bi = list(B[i])
+        for j in range(i):
+            mu[j] = np.dot( B[i], basis[j] ) / float(np.dot(basis[j],basis[j]))
+            bi = sub( bi, scale( basis[j], mu[j] ) )
+            #print("t",te,"bi",bi,"dot",np.dot(basis[j],basis[j]))
+            #print("j",j)
+        basis.append(bi)
+        #print("basis",bi)
+        coeff.append(mu)
+        #print(basis[1],coef)
+    return basis,coeff
+def Lovaz(norm1,norm2,coef,r):
+    return (norm2<(r-coef**2)*norm1)
+def size_reduce(basis,coeff,idx1,idx2):
+    m=round(coeff[idx1][idx2])
+    #if(m>1/2):
+    basis[idx1]=sub(basis[idx1],scale(basis[idx2],m))
+    for j in range(idx2+1):
+        coeff[idx1][j]-=m*coeff[idx2][j]
+def multiply_list(a):
+    i=1
+    for x in a:
+        i*=x
+    return i
+def LLL(inbasis,r):
+    n=len(inbasis)
+    basis=[]
+    for i in range(n):
+        basis.append(list(inbasis[i]))
+    outset_norm=[math.sqrt(np.dot(i,i)) for i in inbasis]
+    vector_all=multiply_list(outset_norm)
+    det=abs(LA.det(inbasis))
+    HMcoeff=pow(det/vector_all,1/n)
+    print("1",HMcoeff)
+    gsbasis,coeff=GramShmid(basis)
+    #print(gsbasis)
+    #print("\n",coeff)
+    gsnorm=[np.dot(x,x) for x in gsbasis]
+    #print("gsnorm",gsnorm)
+    k=1
+    while k<n:
+        size_reduce(basis,coeff,k,k-1)
+        #print("k",k)
+        #print("latter basis",basis,coeff)
+        if (Lovaz(gsnorm[k-1],gsnorm[k],coeff[k][k-1],r)):
+            mu=coeff[k][k-1]
+            no=gsnorm[k]+mu*mu*gsnorm[k-1]
+            coeff[k][k-1]=(mu*gsnorm[k-1])/float(no)
+            gsnorm[k]*=gsnorm[k-1]/float(no)
+            gsnorm[k-1]=no
+            basis[k-1],basis[k]=basis[k],basis[k-1]
+            for j in range(k-1):
+                coeff[k-1][j],coeff[k][j]=coeff[k][j],coeff[k-1][j]
+            for j in range(k+1,n):
+                coeff[j][k-1],coeff[j][k]=coeff[k][k-1]*coeff[j][k-1]+(1-mu*coeff[k][k-1])*coeff[j][k],coeff[j][k-1]-mu*coeff[j][k]
+            k=max(k-1,1)
+        else:
+            for j in range(k-2,-1,-1):
+                size_reduce(basis,coeff,k,j)
+            k+=1
+    return basis,coeff
+
+inbasis=np.array([[19,2,32,46,3,33],[15,42,11,0,3,24],[43,15,0,24,4,16],[20,44,44,0,18,15],[0,48,35,16,31,31],[48,33,32,9,1,29]])
+mat=np.linspace(0.25,0.99,100)
+for i in range(100):
+    outbasis,outcoeff=LLL(inbasis,mat[i])
+    det=abs(LA.det(outbasis))
+    terminal_set_norm=[math.sqrt(np.dot(i,i)) for i in outbasis]
+    vector_all=multiply_list(terminal_set_norm)
+    HMcoeff=pow(det/vector_all,1/len(outbasis))
+    print("2",mat[i],HMcoeff)
