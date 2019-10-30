@@ -2,10 +2,14 @@
 import  numpy as np
 import numpy.linalg as LA
 import math
-''''def dotProduct(a,b):
+import random
+def dotProduct(a,b):
     n=len(a)
     val=0
-    for()'''
+    for i in range(n):
+        val+=a[i]*b[i]
+    #print("val",val)
+    return val
 def scale(a,k):
     m=[x*k for x in  a]
     #print("m",m)
@@ -39,7 +43,7 @@ def GramShmid(B):
         mu[i] = 1
         bi = list(B[i])
         for j in range(i):
-            mu[j] = np.dot( B[i], basis[j] ) / float(np.dot(basis[j],basis[j]))
+            mu[j] = dotProduct( B[i], basis[j] ) / float(dotProduct(basis[j],basis[j]))
             bi = sub( bi, scale( basis[j], mu[j] ) )
             #print("t",te,"bi",bi,"dot",np.dot(basis[j],basis[j]))
             #print("j",j)
@@ -66,11 +70,11 @@ def LLL(inbasis,r):
     basis=[]
     for i in range(n):
         basis.append(list(inbasis[i]))
-    outset_norm=[math.sqrt(np.dot(i,i)) for i in inbasis]
+    outset_norm=[math.sqrt(dotProduct(i,i)) for i in inbasis]
     vector_all=multiply_list(outset_norm)
     det=abs(LA.det(inbasis))
     HMcoeff=pow(det/vector_all,1/n)
-    print("1",HMcoeff)
+    #print("1",HMcoeff)
     gsbasis,coeff=GramShmid(basis)
     #print(gsbasis)
     #print("\n",coeff)
@@ -98,13 +102,50 @@ def LLL(inbasis,r):
                 size_reduce(basis,coeff,k,j)
             k+=1
     return basis,coeff
-
-inbasis=np.array([[19,2,32,46,3,33],[15,42,11,0,3,24],[43,15,0,24,4,16],[20,44,44,0,18,15],[0,48,35,16,31,31],[48,33,32,9,1,29]])
-mat=np.linspace(0.25,0.99,100)
-for i in range(100):
+def Hdemcoeff(a):
+    det=abs(LA.det(a))
+    #print("det",det)
+    terminal_set_norm=[math.sqrt(dotProduct(i,i)) for i in a]
+    #print("ttt",terminal_set_norm)
+    vector_all=multiply_list(terminal_set_norm)
+    HMcoeff=pow(det/vector_all,1/len(a))
+    return HMcoeff
+def babai(a,v):
+    x=LA.solve(a,v)
+    for i in range(len(x)):
+        x[i]=round(x[i])
+    return x
+def Key_creation(a):
+    e=np.identity(3,dtype='int64')
+    for i in range (20):
+        e[(i+1)%3]+=e[i%3]*(random.randint(-3,3))
+    w=np.matmul(e,a)
+    return w
+def GGH_Encry(m,w):
+                                                                                                                                                                                                                                                                                                      
+    
+inbasis=np.array([[19,2,32,46,3,33],[15,42,11,0,3,24],[43,15,0,24,4,16],[20,44,44,0,18,15],[0,48,35,16,31,31],[48,33,32,9,1,29]],dtype='int64')
+print("aaa",Hdemcoeff(inbasis))
+#mat=np.linspace(0.25,0.99,100)
+goodbasis1=np.array([[-97,19,19],[-36,30,86],[-184,-64,78]],dtype='int64')
+goodbasis2=np.array([[58,53,-68],[-110,-112,35],[-10,-119,123]],dtype='int64')
+print("hdemcoeff good is",Hdemcoeff(goodbasis1))
+bad_basis=np.array([[-4179163,-1882253,583183],[-3184353,-1434201,444361],[-5277320,-2376852,736426]],dtype='int64')
+bad_basis1=np.array([[324850,-1625176,2734951],[165782,-829409,1395775],[485054,-2426708,4083804]],dtype='int64')
+print("hedcoe bad is",Hdemcoeff(bad_basis))
+outgoodbasis,outcoeff=LLL(bad_basis1,0.75)
+print(outgoodbasis)
+print(Hdemcoeff(outgoodbasis))
+e=np.array([-79081427,-35617462,11035473],dtype='int64')
+e1=np.array([8930810,-44681748,75192665],dtype='int64')
+x=babai(np.transpose(outgoodbasis),e1)
+x1=babai(np.transpose(bad_basis1),x.dot(outgoodbasis))
+print("solve",x,x1)
+'''for i in range(100):
     outbasis,outcoeff=LLL(inbasis,mat[i])
     det=abs(LA.det(outbasis))
     terminal_set_norm=[math.sqrt(np.dot(i,i)) for i in outbasis]
     vector_all=multiply_list(terminal_set_norm)
     HMcoeff=pow(det/vector_all,1/len(outbasis))
     print("2",mat[i],HMcoeff)
+    '''
